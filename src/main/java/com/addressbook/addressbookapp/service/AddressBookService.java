@@ -2,54 +2,42 @@ package com.addressbook.addressbookapp.service;
 
 import com.addressbook.addressbookapp.model.AddressBook;
 import com.addressbook.addressbookapp.repository.AddressBookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
 @Service
 public class AddressBookService {
-    @Autowired
-    AddressBookRepository addressBookRepository;
+    private final AddressBookRepository addressBookRepository;
 
-    public List<AddressBook> getAllAddresses(){
+    public AddressBookService(AddressBookRepository addressBookRepository) {
+        this.addressBookRepository = addressBookRepository;
+    }
+
+    public List<AddressBook> getAllAddresses() {
         return addressBookRepository.findAll();
     }
 
-    //get address by id
-    public Optional<AddressBook> getAddressById(Long id){
+    public Optional<AddressBook> getAddressById(Long id) {
         return addressBookRepository.findById(id);
     }
 
-    //save the address
-    public AddressBook addAddress(AddressBook addressBook){
+    public AddressBook saveAddress(AddressBook addressBook) {
         return addressBookRepository.save(addressBook);
     }
 
-    //Update address
-    public AddressBook updateAddress(Long id, AddressBook updateAddressBook){
-        Optional<AddressBook> optionalAddressBook = getAddressById(id);
-        if(optionalAddressBook.isPresent()){
-            AddressBook addressBook = optionalAddressBook.get();
-            addressBook.setName(updateAddressBook.getName());
-            addressBook.setAddress(updateAddressBook.getAddress());
-            addressBook.setEmail(updateAddressBook.getEmail());
-            return addressBookRepository.save(addressBook);
-        }
-        else{
-            return  null;
-        }
+    public AddressBook updateAddress(Long id, AddressBook updatedAddressBook) {
+        return addressBookRepository.findById(id)
+                .map(addressBook -> {
+                    addressBook.setName(updatedAddressBook.getName());
+                    addressBook.setEmail(updatedAddressBook.getEmail());
+                    addressBook.setPhone(updatedAddressBook.getPhone());
+                    return addressBookRepository.save(addressBook);
+                }).orElseThrow(() -> new RuntimeException("AddressBook not found"));
     }
 
-    //Delete Address
-    public String deleteAddressById(Long id){
-        Optional<AddressBook> optionalAddressBook = getAddressById(id);
-        if(optionalAddressBook.isPresent()) {
-            addressBookRepository.deleteById(id);
-            return "Address Delete Successful";
-        }
-        else{
-            return null;
-        }
+    public String deleteAddress(Long id) {
+        addressBookRepository.deleteById(id);
+        return "AddressBook deleted successfully";
     }
 }

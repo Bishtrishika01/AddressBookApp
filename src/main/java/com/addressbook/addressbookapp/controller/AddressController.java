@@ -2,49 +2,52 @@ package com.addressbook.addressbookapp.controller;
 
 import com.addressbook.addressbookapp.model.AddressBook;
 import com.addressbook.addressbookapp.service.AddressBookService;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
 
 @RestController
 @RequestMapping("/addressbook")
 public class AddressController {
     private static final Logger logger = LoggerFactory.getLogger(AddressController.class);
+    private final AddressBookService addressBookService;
 
-    @Autowired
-    AddressBookService addressBookService;
+    public AddressController(AddressBookService addressBookService) {
+        this.addressBookService = addressBookService;
+    }
 
     @GetMapping
-    public List<AddressBook> getAllAddress(){
-        logger.info("All address endpoint called ");
-        return addressBookService.getAllAddresses();
+    public ResponseEntity<List<AddressBook>> getAllAddresses() {
+        logger.info("Fetching all addresses");
+        return ResponseEntity.ok(addressBookService.getAllAddresses());
     }
 
-    @GetMapping("/get/{id}")
-    public Optional<AddressBook> getAddressById(@PathVariable Long id){
-        logger.info("By id address endpoint called ");
-        return addressBookService.getAddressById(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<Optional<AddressBook>> getAddressById(@PathVariable Long id) {
+        logger.info("Fetching address with id: {}", id);
+        Optional<AddressBook> addressBook = addressBookService.getAddressById(id);
+        return addressBook.isPresent() ? ResponseEntity.ok(addressBook) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/create")
-    public AddressBook saveAddress(@RequestBody AddressBook addressBook){
-        logger.info("Create address endpoint called ");
-        return addressBookService.addAddress(addressBook);
+    @PostMapping
+    public ResponseEntity<AddressBook> saveAddress(@RequestBody AddressBook addressBook) {
+        logger.info("Saving new address: {}", addressBook);
+        return ResponseEntity.ok(addressBookService.saveAddress(addressBook));
     }
 
-    @PutMapping("/update/{id}")
-    public AddressBook updateAddress(@PathVariable Long id,@RequestBody AddressBook addressBook){
-        logger.info("update address end point called");
-        return addressBookService.updateAddress(id,addressBook);
+    @PutMapping("/{id}")
+    public ResponseEntity<AddressBook> updateAddress(@PathVariable Long id, @RequestBody AddressBook addressBook) {
+        logger.info("Updating address with id: {}", id);
+        return ResponseEntity.ok(addressBookService.updateAddress(id, addressBook));
     }
 
-    @DeleteMapping("/delete/{id}")
-    public String deleteAddress(@PathVariable Long id){
-        logger.info("Delete address end point called");
-        return addressBookService.deleteAddressById(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteAddress(@PathVariable Long id) {
+        logger.info("Deleting address with id: {}", id);
+        return ResponseEntity.ok(addressBookService.deleteAddress(id));
     }
 }
